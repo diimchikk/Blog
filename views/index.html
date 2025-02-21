@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Blog</title>
+        <!--link To CSS-->
+        <link rel="stylesheet" href= "/css/style.css">
+        <!--Box Icons-->
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    </head>
+    <body>
+        <!--Header-->
+        <header>
+            <div class="nav container">
+            <!--Logo-->
+            <a href="/" class="logo">Bl<span>og</span></a>
+        
+        <div class="nav-right">
+            <a href="/admin" class="admin-btn hidden"><i class='bx bx-user'></i></a>
+            <!-- class="write-btn hidden"><i class='bx bx-pencil' ></i>Write</a> !-->
+            <button class="write-btn" id="write-btn"><i class="bx bx-pencil" ></i>Write</button>              
+            <button id="login-btn" class="login-btn" class="auth-btn" onclick="redirectToLogin()">Login</button>
+            <label>or</label>
+            <button id="register-btn" class="register-btn" class="auth-btn" onclick="redirectToRegistration()">Register</button>
+            <button id="logout-btn" class="auth-btn" style="display: none;">Logout</button>
+        </div>
+        </div>
+        </header>
+        <!--Home-->
+        <section class="home" id="home">
+            <div class="home-content">
+                <h2>Blog</h2>
+                <!--Search Box-->
+                <!--<div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="search" name="" id="" placeholder="Search">
+                </div>!-->
+            </div>
+        </section>
+        <!--Post Filter-->
+        <div class="post-filter container">
+            <span class="filter-item active-filter" data-filter ="all">All</span>
+            <span class="filter-item" data-filter ="Art">Art</span>
+            <span class="filter-item" data-filter ="Technology">Technology</span>
+            <span class="filter-item" data-filter ="Food">Food</span>
+        </div>
+        <!--Posts-->
+        <section class="post container" id="posts">
+            <!--Post Will show here -->
+        </section>
+        <!--Footer-->
+        <div class="footer container">
+            <p>&#169;Blog</p>
+            <div class="social">
+                <a href="#"><i class='bx bxl-facebook'></i></a>
+                <a href="#"><i class='bx bxl-twitter'></i></a>
+                <a href="#"><i class='bx bxl-instagram'></i></a>
+                <a href="#"><i class='bx bxl-linkedin'></i></a>
+            </div>
+        </div>
+        <div id="auth-modal" class="modal hidden">
+            <div class="modal-content">
+                <!-- <p>Для выполнения этого действия нужно авторизоваться или зарегистрироваться</p> -->
+            
+                <div class="modal-buttons">
+                    <button onclick="redirectToLogin()" class="modal-btn">Войти</button>
+                    <button onclick="redirectToRegistration()" class="modal-btn">зарегистрироваться</button>
+                </div>
+                <button class="close-btn" id="close-btn">Закрыть</button>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+        <!--Link To JS-->
+        <script  src="/js/main.js"></script>
+        <script type="module" src="/js/module.js"></script>
+        <script>
+            //Filter JS
+            $(document).ready(function(){
+                fetchPosts();
+            $(".filter-item").click(function(){
+        const category= $(this).attr("data-filter");
+        if(category == "all"){
+            fetchPosts();
+        }else{
+            fetchPosts(category);
+        }
+    }); 
+        //Active Button
+        $(".filter-item").click(function(){
+            $(this)
+            .addClass("active-filter")
+            .siblings()
+            .removeClass("active-filter");
+        });
+    });
+        async function checkAccessAndShowModal() {
+                try{
+                    const response = await fetch('http://localhost:5000/add',{
+                        method: "GET",
+                        credentials:"include"
+                    }) 
+                    if(response.status === 401 || response.status === 403){
+                        showModalWindow('Вы не авторизованы.Авторизуйтесь или зарегистрируйтесь');
+                        const modal = document.getElementById('auth-modal');
+                        modal.classList.remove('hidden');
+                    }else if(response.ok){
+                        window.location.href = "http://localhost:5000/add";
+                    }else{
+                        throw new Error("Ошибка Запроса");
+                    }
+                }
+                catch(error){
+                    console.error('Ошибка:', error.message);}}
+     
+        function showModalWindow(message){
+            const modal = document.getElementById('auth-modal');
+            const modalContent = modal.querySelector('.modal-content');
+            let  messageElement = modalContent.querySelector('.modal-message');
+            if(!messageElement){
+                messageElement = document.createElement('p');
+                messageElement.classList.add('modal-message');
+                modalContent.prepend(messageElement);
+            }   
+            messageElement.textContent = message;
+            modal.classList.remove('hidden');            
+            }
+        function hideModalWindow(){
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('hidden');
+        }
+
+        document.getElementById('close-btn').addEventListener('click',hideModalWindow);
+        
+        document.getElementById('write-btn').addEventListener('click', () => {
+            checkAccessAndShowModal();
+        window.location.href = "http://localhost:5000/add";
+        });
+
+        function redirectToLogin(){
+            window.location.href ="http://localhost:3000/login";
+        }
+        function redirectToRegistration(){
+            window.location.href ="http://localhost:3000/registration";
+        }
+        async function checkAuthStatus(){
+            try{
+                const response = await fetch('http://localhost:5000/auth-status',{
+                    method:'GET',
+                    credentials:"include"
+                });
+            const data = await response.json();
+            //const token = document.cookie.split('; ').find(row => row.startsWith('refreshToken'));
+            //console.log('Найденный токен:', data.authorized);
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const orLabel = document.querySelector('label');
+
+            if(data.authorized){
+                loginBtn.style.display = "none";
+                registerBtn.style.display = "none";
+                orLabel.style.display = "none";
+                logoutBtn.style.display ="inline-block";
+            }else{
+                logoutBtn.style.display = "none";
+
+                loginBtn.style.display ="inline-block";
+                registerBtn.style.display ="inline-block";
+                orLabel.style.display ="inline-block";
+            }
+        }catch(error){
+            console.error("Ошибка проверки авторизации:", error);
+            }
+        }
+        window.onload = checkAuthStatus;
+
+        document.getElementById('logout-btn').addEventListener('click', async() =>{
+            try{
+                const response = await fetch('http://localhost:5000/logout',{
+                    method: 'POST',
+                    credentials:"include"
+                });
+                
+                if (response.ok){
+                checkAuthStatus();
+                alert("Вы успешно вышли");
+            } else{
+                alert('Ошибка при выходе');
+            }
+            }catch(error){
+                console.error("Ошибка при выходе", error);
+            }
+        });
+        </script>
+    </body>

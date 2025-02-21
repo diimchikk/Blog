@@ -1,0 +1,5 @@
+/node_modules
+.env
+/Authorization/client/my-app/node_modules
+/database.db
+/public/uploads
